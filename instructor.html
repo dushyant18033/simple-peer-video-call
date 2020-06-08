@@ -1,5 +1,6 @@
 <html>
   <body>
+    <pre id="ID"></pre>
     <style>
       #outgoing {
         width: 600px;
@@ -8,95 +9,112 @@
       }
     </style>
     <video id="vid1"></video>
-    <form>
+    <video id="vid2"></video>
+    <video id="vid3"></video>
+    <video id="vid4"></video>
+    
+    <!-- <form>
       <textarea id="incoming"></textarea>
       <button type="submit">submit</button>
     </form>
+     -->
     <pre id="outgoing"></pre>
+    
     <script src = "/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.7.2/simplepeer.min.js"></script>
+    
     <script>
 
       let socket = io();
+
       let myID = null;
-      let peer = null;
-      let from_ID1 = null;
+      
+      let peer = [null,null,null,null];
+      let from_ID1 = [null,null,null,null];
+
+      let video = document.querySelectorAll('video');
+
+      let ctr=0;
+
+      socket.on('connect', ()=>
+      {
+        console.log('Connected');
+        socket.emit('instructor',{'username':'instructor'});
+      });
 
       socket.on('ID', data => {
         console.log(data);
         myID = data;
+        document.querySelector('#ID').textContent="Your ID: "+myID;
       });
       socket.on('callOffer', data => {
         console.log(data);
-        peer.signal(JSON.parse(data.offer_data));
-        from_ID1 = data.from_ID;
+        peer[ctr].signal(JSON.parse(data.offer_data));
+        from_ID1[ctr]=data.from_ID;
+
+        console.log(from_ID1[ctr]);
+
+        peer[ctr].on('signal', data1 => {
+          const offer_str = JSON.stringify(data1);
+          console.log('SIGNAL', offer_str);
+          document.querySelector('#outgoing').textContent = offer_str;
+          // if(data.type == "offer")
+          //   offer_data=offer_str;
+          if(data1.type == "answer")
+          {
+            socket.emit('AcceptOffer', {'from_ID': from_ID1[ctr], 'to_ID':myID, 'accept_data':JSON.stringify(data1)});
+            console.log('Accepting call from ' + from_ID1[ctr]);
+            ctr++;
+          }
+        });
+
+        peer[ctr].on('stream', stream => {
+          // got remote video stream, now let's show it in a video tag
+          if ('srcObject' in video[ctr]) {
+            video[ctr].srcObject = stream;
+          } else {
+            video[ctr].src = window.URL.createObjectURL(stream); // for older browsers
+          }
+          video[ctr].play();
+        });
+
+        console.log('CTR: ',ctr);
       });
-      socket.on('callAnswered', data=>{
-        console.log(data);
-        peer.signal(JSON.parse(data.accept_data));
-      });
+      // socket.on('callAnswered', data=>{
+      //   console.log(data);
+      //   peer.signal(JSON.parse(data.accept_data));
+      // });
 
       navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true
       }).then(gotMedia).catch(() => {});
       
-
-      let offer_data=null;
-
       function gotMedia (stream) 
       { 
         
-        const p = new SimplePeer({
-          initiator: true,
-          trickle: false,
-          stream: stream
-        });
+        for(var i=0; i<4; i++)
+        {
+          const p = new SimplePeer({
+            initiator: false,
+            trickle: false,
+            stream: stream
+          });
 
-        peer=p;
+          p.on('error', err => console.log('error', err));
+          
+          p.on('connect', () => {
+            console.log('CONNECT');
+            // p.send('whatever' + Math.random())
+          });
+          
+          p.on('data', data => {
+            console.log('data: ' + data)
+          });
 
-        p.on('error', err => console.log('error', err));
-
-        p.on('signal', data => {
-          const offer_str = JSON.stringify(data);
-          console.log('SIGNAL', offer_str);
-          document.querySelector('#outgoing').textContent = offer_str;
-          if(data.type == "offer")
-            offer_data=offer_str;
-          else if(data.type == "answer")
-          {
-            socket.emit('AcceptOffer', {'from_ID': from_ID1, 'to_ID':myID, 'accept_data':JSON.stringify(data)});
-            console.log('Accepting call from ' + from_ID1);
-          }
-        });
-
-        document.querySelector('form').addEventListener('submit', ev => {
-          ev.preventDefault()
-          let to_ID = document.querySelector('#incoming').value;
-          let from_ID = myID;
-          socket.emit('callUser',{'to_ID':to_ID, 'from_ID':from_ID, 'offer_data':offer_data});
-        });
-
-        p.on('connect', () => {
-          console.log('CONNECT');
-          p.send('whatever' + Math.random())
-        });
-
-        p.on('data', data => {
-          console.log('data: ' + data)
-        });
-        p.on('stream', stream => {
-          // got remote video stream, now let's show it in a video tag
-          var video = document.querySelector('#vid1');
-
-          if ('srcObject' in video) {
-            video.srcObject = stream;
-          } else {
-            video.src = window.URL.createObjectURL(stream); // for older browsers
-          }
-
-          video.play();
-        });
+          peer[i]=p;
+        }         
+        console.log('READY'); 
       }
     </script>
   </body>

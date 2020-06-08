@@ -1,5 +1,6 @@
 <html>
   <body>
+    <pre id="ID"></pre>
     <style>
       #outgoing {
         width: 600px;
@@ -22,15 +23,23 @@
       let peer = null;
       let from_ID1 = null;
 
+      socket.on('connect', ()=>
+      {
+        console.log('Connected');
+        socket.emit('student',{});
+      });
+
       socket.on('ID', data => {
         console.log(data);
         myID = data;
+        document.querySelector('#ID').textContent="Your ID: "+myID;
       });
-      socket.on('callOffer', data => {
-        console.log(data);
-        peer.signal(JSON.parse(data.offer_data));
-        from_ID1 = data.from_ID;
-      });
+      // socket.on('callOffer', data => {
+      //   console.log(data);
+      //   peer.signal(JSON.parse(data.offer_data));
+      //   from_ID1 = data.from_ID;
+      // });
+      
       socket.on('callAnswered', data=>{
         console.log(data);
         peer.signal(JSON.parse(data.accept_data));
@@ -63,11 +72,11 @@
           document.querySelector('#outgoing').textContent = offer_str;
           if(data.type == "offer")
             offer_data=offer_str;
-          else if(data.type == "answer")
-          {
-            socket.emit('AcceptOffer', {'from_ID': from_ID1, 'to_ID':myID, 'accept_data':JSON.stringify(data)});
-            console.log('Accepting call from ' + from_ID1);
-          }
+          // else if(data.type == "answer")
+          // {
+          //   socket.emit('AcceptOffer', {'from_ID': from_ID1, 'to_ID':myID, 'accept_data':JSON.stringify(data)});
+          //   console.log('Accepting call from ' + from_ID1);
+          // }
         });
 
         document.querySelector('form').addEventListener('submit', ev => {

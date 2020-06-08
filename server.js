@@ -2,21 +2,40 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-app.get('/', function(req, res) {
-   res.sendFile('index.html',{ root: __dirname });
+app.get('/begin', function(req, res) {
+   res.sendFile('instructor.html',{ root: __dirname });
 });
 
+app.get('/join', function(req, res) {
+   res.sendFile('student.html',{ root: __dirname });
+});
 
-const users = {};
+const instructors = {};
+const students = {};
+
+
+app.get('/', function(req, res) {
+   let response = {'students':students, 'instructors':instructors}
+   res.send(response);
+});
+
 
 //Whenever someone connects this gets executed
 io.on('connection', function(socket) {
    console.log('A user connected');
 
-   if (!users[socket.id]) {
-      users[socket.id] = socket.id;
+   socket.on('student',(data) => {
+      students[socket.id] = socket.id;
       socket.emit('ID',socket.id);
-   }
+   });
+
+   socket.on('instructor',(data) => {
+      instructors[socket.id] = socket.id;
+      socket.emit('ID',socket.id);
+   });
+
+
+
 
    socket.on("callUser", (data) => {
       io.to(data.to_ID).emit('callOffer', {offer_data: data.offer_data, from_ID: data.from_ID, to_ID: data.to_ID});
@@ -29,9 +48,15 @@ io.on('connection', function(socket) {
   });
    
 
+
+  
    //Whenever someone disconnects this piece of code executed
    socket.on('disconnect', function () {
       console.log('A user disconnected');
+      if(instructors[socket.id])
+         delete instructors[socket.id];
+      else if(students[socket.id])
+         delete students[socket.id];
    });
 });
 
