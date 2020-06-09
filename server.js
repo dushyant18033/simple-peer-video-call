@@ -10,8 +10,13 @@ app.get('/join', function(req, res) {
    res.sendFile('student.html',{ root: __dirname });
 });
 
+
+// res.sendFile(path.join(__dirname, '../public', 'index1.html'));
+// res.sendFile('index1.html', { root: path.join(__dirname, '../public') });
+
 const instructors = {};
 const students = {};
+list_students = [];
 
 
 app.get('/', function(req, res) {
@@ -27,13 +32,24 @@ io.on('connection', function(socket) {
    socket.on('student',(data) => {
       students[socket.id] = socket.id;
       socket.emit('ID',socket.id);
+      list_students.push(socket.id);
    });
 
    socket.on('instructor',(data) => {
       instructors[socket.id] = socket.id;
       socket.emit('ID',socket.id);
-   });
 
+      socket.on('getStudents',(data)=>{
+         console.log('getList');
+         socket.emit('studentsList', {'list_students':list_students});
+      });
+
+      socket.on('invite', (data) => 
+      {
+         console.log('invited '+data);
+         io.to(data).emit('Invitation',{instructor:socket.id, student:data});
+      });
+   });
 
 
 
@@ -56,7 +72,10 @@ io.on('connection', function(socket) {
       if(instructors[socket.id])
          delete instructors[socket.id];
       else if(students[socket.id])
+      {
          delete students[socket.id];
+         list_students.pop(socket.id);
+      }
    });
 });
 

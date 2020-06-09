@@ -9,9 +9,10 @@
       }
     </style>
     <video id="vid1"></video>
+    <table id="Invitations"></table>
     <form>
       <textarea id="incoming"></textarea>
-      <button type="submit">submit</button>
+      <button id="connect" type="submit" disabled>CONNECT</button>
     </form>
     <pre id="outgoing"></pre>
     <script src = "/socket.io/socket.io.js"></script>
@@ -40,6 +41,25 @@
       //   from_ID1 = data.from_ID;
       // });
       
+      socket.on('Invitation',(data)=>{
+        let table = document.getElementById("Invitations");
+        
+        var row = table.insertRow(0);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+
+        var button = document.createElement("button");
+        button.innerHTML = "Join";
+
+        button.addEventListener('click',()=>{
+          document.querySelector('#incoming').value=data.instructor;
+          // document.querySelector('form').submit();
+        });
+        
+        cell1.innerHTML = data.instructor;
+        cell2.appendChild(button);
+      });
+
       socket.on('callAnswered', data=>{
         console.log(data);
         peer.signal(JSON.parse(data.accept_data));
@@ -71,7 +91,10 @@
           console.log('SIGNAL', offer_str);
           document.querySelector('#outgoing').textContent = offer_str;
           if(data.type == "offer")
+          {
+            document.querySelector('#connect').disabled=false;
             offer_data=offer_str;
+          }
           // else if(data.type == "answer")
           // {
           //   socket.emit('AcceptOffer', {'from_ID': from_ID1, 'to_ID':myID, 'accept_data':JSON.stringify(data)});
