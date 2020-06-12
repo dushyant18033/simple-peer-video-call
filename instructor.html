@@ -12,6 +12,10 @@
     <video id="vid2"></video>
     <video id="vid3"></video>
     <video id="vid4"></video>
+    <video id="vid5"></video>
+    <video id="vid6"></video>
+    <video id="vid7"></video>
+    <video id="vid8"></video>
     
     <table id="studentsList"></table>
     <form>
@@ -29,8 +33,8 @@
 
       let myID = null;
       
-      let peer = [null,null,null,null];
-      let from_ID1 = [null,null,null,null];
+      let peer = [null,null,null,null,null,null,null,null];
+      let from_ID1 = [null,null,null,null,null,null,null,null];
 
       let video = document.querySelectorAll('video');
 
@@ -121,7 +125,7 @@
       function gotMedia (stream) 
       { 
         
-        for(var i=0; i<4; i++)
+        for(var i=0; i<8; i++)
         {
           const p = new SimplePeer({
             initiator: false,
