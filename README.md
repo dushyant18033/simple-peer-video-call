@@ -15,7 +15,7 @@ _2. http://localhost:3000/begin opens up a teacher page and a session is started
 _3. http://localhost:3000/join opens up a student page._
 
 
+### How to start or join a session
 
-### How to start/join a session
-_1. The teacher upon opening the begin page can fetch currently logged in users and send them an invite to join the session._
+_1. The teacher upon opening the begin page can fetch currently logged in users and send them an invite to join the session._  
 _2. The student upon opening the join page can either manually enter a session id or accept an invitation followed by clicking on connect to join a session._
