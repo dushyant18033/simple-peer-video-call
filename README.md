@@ -10,9 +10,9 @@ _You can host a proxy server to provide public access to this server._
 
 
 ### Main routes in the WebApp
-_1. http://localhost/ returns a json string with ids of all the connected users, separately for student and teacher types._  
-_2. http://localhost/begin opens up a teacher page and a session is started with the teacher's id as the session id._  
-_3. http://localhost/join opens up a student page._
+_1. http://localhost:3000/ returns a json string with ids of all the connected users, separately for student and teacher types._  
+_2. http://localhost:3000/begin opens up a teacher page and a session is started with the teacher's id as the session id._  
+_3. http://localhost:3000/join opens up a student page._
 
 
 
